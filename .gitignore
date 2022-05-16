@@ -14,6 +14,7 @@ transitionLog.txt
 .settings
 .classpath
 .idea
+.coverage
 bin/
 examples/mine/
 examples/plot/
@@ -25,3 +26,4 @@ master/dependency-reduced-pom.xml
 shaded/dependency-reduced-pom.xml
 standalone_runtime/dependency-reduced-pom.xml
 nbactions.xml
+coverage.xml

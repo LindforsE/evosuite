@@ -172,6 +172,13 @@ public class PropertiesSuiteGAFactory
             case SPEA2:
                 logger.info("Chosen search algorithm: SPEA2");
                 return new SPEA2<>(factory);
+            // MY OWN CASE
+            case MOEAD:
+                logger.info("Chosen search algorithm: MOEAD");
+                return new MOEAD<>(factory);
+            case AGEII:
+                logger.info("Chosen search algorithm: AGEII");
+                return new AGEII<>(factory);    
             case MOSA:
                 logger.info("Chosen search algorithm: MOSA");
 //				return new MOSA(factory);
@@ -265,6 +272,8 @@ public class PropertiesSuiteGAFactory
                 return new org.evosuite.ga.operators.crossover.CoverageCrossOver();
             case UNIFORM:
                 return new UniformCrossOver<>();
+            case MIDDLE:
+                return new MiddleCrossOver<>();
             default:
                 throw new RuntimeException("Unknown crossover function: "
                         + Properties.CROSSOVER_FUNCTION);

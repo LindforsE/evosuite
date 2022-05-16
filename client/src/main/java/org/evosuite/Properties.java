@@ -319,7 +319,9 @@ public class Properties {
         // many-objective algorithms
         MOSA, DYNAMOSA, LIPS, MIO,
         // multiple-objective optimisation algorithms
-        NSGAII, SPEA2
+        NSGAII, SPEA2,
+        // self-implemented multiple-objective algorithms
+        MOEAD, AGEII,
     }
 
     // MOSA PROPERTIES
@@ -693,7 +695,7 @@ public class Properties {
     public static StoppingCondition STOPPING_CONDITION = StoppingCondition.MAXTIME;
 
     public enum CrossoverFunction {
-        SINGLEPOINTRELATIVE, SINGLEPOINTFIXED, SINGLEPOINT, COVERAGE, UNIFORM
+        SINGLEPOINTRELATIVE, SINGLEPOINTFIXED, SINGLEPOINT, COVERAGE, UNIFORM, MIDDLE
     }
 
     @Parameter(key = "crossover_function", group = "Search Algorithm", description = "Crossover function during search")
