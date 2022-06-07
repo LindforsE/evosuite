@@ -173,6 +173,12 @@ public class PropertiesSuiteGAFactory
 			case SPEA2:
 				logger.info("Chosen search algorithm: SPEA2");
 				return new SPEA2<>(factory);
+			case AGEII:
+				logger.info("Chosen search algorithm: AGEII");
+				return new AGEII<>(factory);
+			case MOEAD:
+				logger.info("Chosen search algorithm: MOEAD");
+				return new MOEAD<>(factory);
 			case MOSA:
 				logger.info("Chosen search algorithm: MOSA");
 //				return new MOSA(factory);

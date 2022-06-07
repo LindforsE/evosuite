@@ -155,6 +155,12 @@ public class PropertiesTestGAFactory
         case SPEA2:
             logger.info("Chosen search algorithm: SPEA2");
             return new SPEA2<>(factory);
+		case AGEII:
+			logger.info("Chosen search algorithm: AGEII");
+			return new AGEII<>(factory);
+		case MOEAD:
+			logger.info("Chosen search algorithm: MOEAD");
+			return new MOEAD<>(factory);
         case ONE_PLUS_LAMBDA_LAMBDA_GA:
             logger.info("Chosen search algorithm: 1 + (lambda, lambda)GA");
             return new OnePlusLambdaLambdaGA<>(factory, Properties.LAMBDA);
