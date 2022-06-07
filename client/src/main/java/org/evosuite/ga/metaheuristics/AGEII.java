@@ -3,8 +3,6 @@ package org.evosuite.ga.metaheuristics;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 
-// import org.evosuite.ga.archive.Archive;
-
 // these can be replaced with "import java.util.*;"
 import java.util.List;
 
@@ -18,11 +16,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * AGE-II implementation
- * <INSERT ARTICLE HERE>
+ * AGE-II implementation <INSERT ARTICLE HERE>
  * 
  * @author Elias
- *      
  */
 public class AGEII<T extends Chromosome<T>> extends GeneticAlgorithm<T> {
     // variables
@@ -48,19 +44,19 @@ public class AGEII<T extends Chromosome<T>> extends GeneticAlgorithm<T> {
         // Aeg = approximative archive
         // default epsilon = 0.1 ??
 
-        // initialize empty offspring population;
+        // initialize empty offspring population
         List<T> offspringPopulation = new ArrayList<>(Properties.POPULATION);
 
-        // for j <- 1 to lambda, do;
+        // for j <- 1 to lambda, do
         // WHAT IS LAMBDA? (mu is Population size, lambda is ???)
         for (int i = 0; i < 1; i++) {
-            // Select two individuals from Population;
+            // Select two individuals from Population
             T parent1 = this.selectionFunction.select(population);
             T parent2 = this.selectionFunction.select(population);
             T offspring1 = parent1.clone();
             T offspring2 = parent2.clone();
 
-            // Apply crossover and mutation;
+            // Apply crossover and mutation
             try {
                 if (Randomness.nextDouble() <= Properties.CROSSOVER_RATE)
                     this.crossoverFunction.crossOver(offspring1, offspring2);
@@ -82,7 +78,7 @@ public class AGEII<T extends Chromosome<T>> extends GeneticAlgorithm<T> {
                 notifyEvaluation(offspring2);
             }
 
-            // Add new individuals to offspring population;
+            // Add new individuals to offspring population
             offspringPopulation.add(offspring1);
             offspringPopulation.add(offspring2);
 
@@ -93,27 +89,26 @@ public class AGEII<T extends Chromosome<T>> extends GeneticAlgorithm<T> {
         // foreach individual in offspring population, do
         for (T item : offspringPopulation) {
             // Insert offspring this.floor(p) in the approximative archive Aeg such that
-            // only non-dominated solutions remain;
+            // only non-dominated solutions remain
             // (Insert only if floor(p) is non-nominating?)
 
             // Discard offspring p if it's dominated by any point
-            // this.increment(a), where a is part of A;
+            // this.increment(a), where a is part of A
             // (Discard p if it's dominated by any increment(a) in A)
 
             // IS THIS CORRECT? (if not dominated, add to population)
             this.population.add(item);
         }
 
-        // Add offsprings to Population, P <-P union O;
+        // Add offsprings to Population, P <-P union O
         this.population = union(this.population, offspringPopulation);
 
-        
-        // While abs(Population) > mu, do;
+        // While abs(Population) > mu, do
         if (this.population.size() > Properties.POPULATION) {
             // Remove individual from Population that is of least importance to the
-            // approximation;
+            // approximation
             // this should be a ranking function, right?
-            
+
             // IS THIS CORRECT? (sort according to rank and crowding distance)
             this.population.sort(new RankAndCrowdingDistanceComparator<>(true));
             // IS THIS CORRECT? (walk through individuals which are outside range)
@@ -130,7 +125,7 @@ public class AGEII<T extends Chromosome<T>> extends GeneticAlgorithm<T> {
      * @return Corresponding vector v on the epsilon-grid
      */
     private void floor(T input) {
-        // for i = 1 to d do v[i] <- x[i]/epsilon;
+        // for i = 1 to d do v[i] <- x[i]/epsilon
         for (final FitnessFunction<T> ff : this.getFitnessFunctions()) {
             input.setFitness(ff, (input.getFitness(ff)) / Properties.EPSILON);
         }
@@ -143,7 +138,7 @@ public class AGEII<T extends Chromosome<T>> extends GeneticAlgorithm<T> {
      * @return Corresponding vector v that has each of its components increased by 1
      */
     private void increment(T input) {
-        // for i = 1 to d do v[i] <- o[i]+1;
+        // for i = 1 to d do v[i] <- o[i]+1
     }
 
     @Override
@@ -153,16 +148,16 @@ public class AGEII<T extends Chromosome<T>> extends GeneticAlgorithm<T> {
 
     @Override
     public void initializePopulation() {
-        // initialize population with random individuals;
+        // initialize population with random individuals
         this.generateInitialPopulation(Properties.POPULATION);
 
-        // set grid resolution of the approximate archive;
+        // set grid resolution of the approximate archive
 
-        // foreach individual in Population, do;
-        for (int i = 0; i < this.population.size(); i++) {
+        // foreach individual in Population, do
+        for (T indiv : this.population) {
             // Insert offspring floor(p) in the approximative archive Aeg such that only
-            // non-dominated solutions remain;
-            // this.floor(this.population.get(i));
+            // non-dominated solutions remain
+            // this.floor(this.population.get(i))
             // Archive.getArchiveInstance()
         }
     }
@@ -173,7 +168,7 @@ public class AGEII<T extends Chromosome<T>> extends GeneticAlgorithm<T> {
         if (newSize < Properties.POPULATION)
             newSize = Properties.POPULATION;
 
-        // Create a new population;
+        // Create a new population
         List<T> union = new ArrayList<>(newSize);
         union.addAll(population);
 
