@@ -25,34 +25,59 @@ import static org.mockito.ArgumentMatchers.anySet;
 // import java.util.List;
 
 public class AGEIISystemTest extends SystemTestBase {
-    @Test
-    public void testFloorMethod() {
-    // Set epsilon value
-    Properties.EPSILON = 0.1;
-
-    // Create fitness and chromosome
-    BranchCoverageSuiteFitness branch = new BranchCoverageSuiteFitness();
-    TestSuiteChromosome t1 = new TestSuiteChromosome();
-    
-    // Set finess
-    t1.setFitness(branch, 0.5);
-    
-    // Initialize algorithm and set fitness function
-    AGEII<TestSuiteChromosome> algorithm = new AGEII<>(null);
-    algorithm.addFitnessFunction(branch);
-    
-    // Execute method
-    algorithm.floor(t1);
-
-    // Assert floored value
-    assertEquals(0.25, t1.getFitness(branch), 0.01);
-
-    }
-    
     // Test for increment() method
     @Test
     public void testIncrementMethod() {
         assertTrue(true);
+    }
+
+    @Test
+    public void testFloorMethod() {
+        // set precision
+        Properties.EPSILON = 0.1;
+        
+        // create fitness
+        BranchCoverageSuiteFitness branch = new BranchCoverageSuiteFitness();
+
+        // create algorithm
+        AGEII<TestSuiteChromosome> ga = new AGEII<>(null);
+        ga.addFitnessFunction(branch);
+
+        // create test chromosome
+        TestSuiteChromosome t1 = new TestSuiteChromosome();
+        t1.addFitness(branch, 0.33333);
+
+        // floor 0.33333 to 0.3
+        ga.floor(t1);
+        assertEquals(0.3, t1.getFitness(branch), 0.01);
+
+        // change precision
+        Properties.EPSILON = 0.2;
+
+        // new fitness
+        t1.setFitness(branch, 0.33333);
+
+        // floor 0.33333 to 0.2
+        ga.floor(t1);
+        assertEquals(0.2, t1.getFitness(branch), 0.01);
+
+        // change precision
+        Properties.EPSILON = 0.5;
+
+        // new fitness
+        t1.setFitness(branch, 0.7);
+
+        // floor 0.7 to 0.5
+        ga.floor(t1);
+        assertEquals(0.5, t1.getFitness(branch), 0.01);
+
+        // new fitness
+        t1.setFitness(branch, 2.3);
+
+        // floor 2.3 to 2.0
+        ga.floor(t1);
+        assertEquals(2.0, t1.getFitness(branch), 0.01);
+
     }
 
     // test for floorAndInsert() method

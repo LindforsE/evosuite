@@ -28,6 +28,7 @@ public class AGEII<T extends Chromosome<T>> extends GeneticAlgorithm<T> {
 
     // epsilon-grid variable
     // Properties.EPSILON (default value should be 0.1)
+    //double epsilon;
 
     // epsilon (approximate) archive
     List<T> approxArchive = null;
@@ -36,6 +37,7 @@ public class AGEII<T extends Chromosome<T>> extends GeneticAlgorithm<T> {
     public AGEII(ChromosomeFactory<T> factory) {
         super(factory);
         approxArchive = new ArrayList<>();
+        //this.epsilon = Math.pow(10, Properties.EPSILON);
     }
 
     @Override
@@ -137,7 +139,7 @@ public class AGEII<T extends Chromosome<T>> extends GeneticAlgorithm<T> {
     protected void floor(T input) {
         // for i = 1 to d do v[i] <- x[i]/epsilon
         for (final FitnessFunction<T> ff : this.getFitnessFunctions()) {
-            input.setFitness(ff, (Math.floor(input.getFitness(ff) / Properties.EPSILON)));
+            input.setFitness(ff, (Math.floor(input.getFitness(ff) / Properties.EPSILON)*Properties.EPSILON));
         }
     }
 
