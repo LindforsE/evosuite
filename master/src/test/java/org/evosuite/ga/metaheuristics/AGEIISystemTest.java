@@ -28,7 +28,19 @@ public class AGEIISystemTest extends SystemTestBase {
     // Test for increment() method
     @Test
     public void testIncrementMethod() {
-        assertTrue(true);
+        // fitness and algorithm
+        BranchCoverageSuiteFitness branch = new BranchCoverageSuiteFitness();
+        AGEII<TestSuiteChromosome> ga = new AGEII<>(null);
+        ga.addFitnessFunction(branch);
+
+        // chromosome
+        TestSuiteChromosome t1 = new TestSuiteChromosome();
+        t1.addFitness(branch, 0.3);
+
+        // increement 0.3 to 1.3
+        ga.increment(t1);
+
+        assertEquals(1.3, t1.getFitness(branch), 0.01);
     }
 
     @Test

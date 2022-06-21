@@ -131,7 +131,7 @@ public class AGEII<T extends Chromosome<T>> extends GeneticAlgorithm<T> {
     }
 
     /**
-     * Algorithm 2
+     * Algorithm 1
      * 
      * @param input d-dimensional objective vector x, archive parameter eg
      * @return Corresponding vector v on the epsilon-grid
@@ -163,26 +163,17 @@ public class AGEII<T extends Chromosome<T>> extends GeneticAlgorithm<T> {
         this.approxArchive.retainAll(this.rankingFunction.getSubfront(0));
     }
 
-    protected List<T> floorPopulation(List<T> input) {
-        List<T> tmp = new ArrayList<>(input.size());
-        for (T indiv : input) {
-            T tmpIndiv = indiv.clone();
-            for (FitnessFunction<T> ff : this.getFitnessFunctions()) {
-                tmpIndiv.setFitness(ff, (Math.floor(tmpIndiv.getFitness(ff) / Properties.EPSILON)));
-            }
-            tmp.add(tmpIndiv);
-        }
-        return tmp;
-    }
-
     /**
-     * Algorithm 3
+     * Algorithm 2
      * 
      * @param input d-dimensional vector x, archive parameter eg
      * @return Corresponding vector v that has each of its components increased by 1
      */
     protected void increment(T input) {
         // for i = 1 to d do v[i] <- o[i]+1
+        for (final FitnessFunction<T> ff : this.getFitnessFunctions()) {
+            input.setFitness(ff, (input.getFitness(ff) + 1));
+        }
     }
 
     @Override
