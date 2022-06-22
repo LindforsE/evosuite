@@ -27,6 +27,23 @@ with open("100chosenClasses.txt", 'w') as file3:
 
 with open("100chosenClasses.txt", 'r') as file1:
     rnd_hundred = [lines.rstrip() for lines in file1]
+rnd_hundred.sort()
+
+hundred_classes_dict = dict()
+old = None
+collection = list()
+for item in rnd_hundred:
+    if old is not None and old.split('\t')[0] == item.split('\t')[0]:
+        collection.append(item.split('\t')[1])
+    elif old is not None:
+        collection.append(item.split('\t')[1])
+        hundred_classes_dict.update({old.split('\t')[0]: tuple(collection)})
+        collection = list()
+    if old is None:
+        collection.append(item.split('\t')[1])
+    old = item
+collection.append(old.split('\t')[1])
+hundred_classes_dict.update({old.split('\t')[0]: tuple(collection)})
 
 with open("../../outputVariables.txt", 'r') as varFile:
     outVars = varFile.readlines()[0]
@@ -40,6 +57,13 @@ for row in rnd_hundred:
     command_list.append(cmd_string.format(
         row.split('\t')[1], outVars))
 
+with open("../../halfexecute.sh", 'w') as file2:
+    file2.write("#!/bin/sh\ncd bin/SF100\n")
+    for key in hundred_classes_dict.keys():
+        file2.write(f"cd {key}\n")
+        for item in hundred_classes_dict[key]:
+            file2.write(f"$EVOSUITE -generateSuite {outVars} -class {item} -Dalgorithm=$1\n")
+        file2.write("cd ..\n")
 
 # insert execution string
 # "java -jar evosuite.jar -generateSuite -target <directory>/<jar-file> -class <class-name>"
