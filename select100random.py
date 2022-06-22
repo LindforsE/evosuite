@@ -36,13 +36,13 @@ for item in rnd_hundred:
     if old is not None and old.split('\t')[0] == item.split('\t')[0]:
         collection.append(item.split('\t')[1])
     elif old is not None:
-        collection.append(item.split('\t')[1])
         hundred_classes_dict.update({old.split('\t')[0]: tuple(collection)})
         collection = list()
+        collection.append(item.split('\t')[1])
     if old is None:
         collection.append(item.split('\t')[1])
     old = item
-collection.append(old.split('\t')[1])
+# collection.append(old.split('\t')[1])
 hundred_classes_dict.update({old.split('\t')[0]: tuple(collection)})
 
 with open("../../outputVariables.txt", 'r') as varFile:
@@ -51,7 +51,10 @@ with open("../../outputVariables.txt", 'r') as varFile:
 # restructure
 # "<directory>\t<class>" to
 # "<directory>\t<file>\t<class>"
+times_to_repeat = 10
 cmd_string = "$EVOSUITE -generateSuite -class {} {} -Dalgorithm=$1"
+loop_str_start = f"x=1; while  [ $x -le {times_to_repeat} ]; do\n"
+loop_str_end = "\tx=$(( $x + 1 ))\ndone\n"
 for row in rnd_hundred:
     dir_list.append(row.split('\t')[0])
     command_list.append(cmd_string.format(
@@ -60,10 +63,10 @@ for row in rnd_hundred:
 with open("../../halfexecute.sh", 'w') as file2:
     file2.write("#!/bin/sh\ncd bin/SF100\n")
     for key in hundred_classes_dict.keys():
-        file2.write(f"cd {key}\n")
+        file2.write(f"cd {key}\nrm -r evosuite-report evosuite-tests\n" + loop_str_start)
         for item in hundred_classes_dict[key]:
-            file2.write(f"$EVOSUITE -generateSuite {outVars} -class {item} -Dalgorithm=$1\n")
-        file2.write("cd ..\n")
+            file2.write(f"\t$EVOSUITE -generateSuite {outVars} -class {item} -Dalgorithm=$1\n")
+        file2.write(loop_str_end + f"echo {key} completed\ncd ..\n")
 
 # insert execution string
 # "java -jar evosuite.jar -generateSuite -target <directory>/<jar-file> -class <class-name>"
