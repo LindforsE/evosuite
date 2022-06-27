@@ -28,3 +28,4 @@ nbactions.xml
 coverage.xml
 .coverage
 .vscode
+__pycache__
