@@ -1,7 +1,11 @@
 package org.evosuite.ga.metaheuristics;
 
+import java.math.BigDecimal;
+import java.math.MathContext;
+import java.math.RoundingMode;
 // these can be replaced with "import java.util.*;"
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 
@@ -23,23 +27,25 @@ import org.slf4j.LoggerFactory;
  */
 public class AGEII<T extends Chromosome<T>> extends GeneticAlgorithm<T> {
     // variables
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 4L;
     private static final Logger logger = LoggerFactory.getLogger(AGEII.class);
+
+    private final DominanceComparator<T> comparator;
 
     // epsilon-grid variable
     // Properties.EPSILON (default value should be 0.1)
-    //double epsilon;
 
     // epsilon (approximate) archive
-    List<T> approxArchive = null;
+    final List<T> approxArchive;
 
     // Constructor
     public AGEII(ChromosomeFactory<T> factory) {
         super(factory);
-        approxArchive = new ArrayList<>();
-        //this.epsilon = Math.pow(10, Properties.EPSILON);
+        this.comparator = new DominanceComparator<>();
+        this.approxArchive = new ArrayList<>();
     }
 
+    /** {@inheritDoc} */
     @Override
     protected void evolve() {
         // P = Population
@@ -50,21 +56,21 @@ public class AGEII<T extends Chromosome<T>> extends GeneticAlgorithm<T> {
         // default epsilon = 0.1 ??
 
         // initialize empty offspring population
-        List<T> offspringPopulation = new ArrayList<>(Properties.POPULATION);
+        List<T> offspringPopulation = new ArrayList<>(population.size());
 
         // for j <- 1 to lambda, do
         // WHAT IS LAMBDA? (mu is Population size, lambda is ???)
         for (int i = 0; i < (this.population.size() / 2); i++) {
             // Select two individuals from Population
-            T parent1 = this.selectionFunction.select(population);
-            T parent2 = this.selectionFunction.select(population);
+            T parent1 = selectionFunction.select(population);
+            T parent2 = selectionFunction.select(population);
             T offspring1 = parent1.clone();
             T offspring2 = parent2.clone();
 
             // Apply crossover and mutation
             try {
                 if (Randomness.nextDouble() <= Properties.CROSSOVER_RATE)
-                    this.crossoverFunction.crossOver(offspring1, offspring2);
+                    crossoverFunction.crossOver(offspring1, offspring2);
             } catch (Exception e) {
                 logger.info("Crossover failed.");
             }
@@ -88,30 +94,35 @@ public class AGEII<T extends Chromosome<T>> extends GeneticAlgorithm<T> {
             offspringPopulation.add(offspring2);
         }
 
-        //this.rankingFunction.computeRankingAssignment(offspringPopulation,
-        //            new LinkedHashSet<FitnessFunction<T>>(this.getFitnessFunctions()));
+        /// foreach individual in offspring population, do
+        /// Insert offspring this.floor(p) in the approximative archive Aeg such that
+        /// only non-dominated solutions remain
+        floorAndInsert(offspringPopulation);
+        // (Insert only if floor(p) is non-nominating?)
+        // (Insert all, then keep only best front?)
+        
+        
+        /// Discard offspring p if it's dominated by any point
+        /// this.increment(a), where a is part of A (Aeg)
 
-        // foreach individual in offspring population, do
-        for (T item : offspringPopulation) {
-            // Insert offspring this.floor(p) in the approximative archive Aeg such that
-            // only non-dominated solutions remain
-            // (Insert only if floor(p) is non-nominating?)
-            // (Insert all, then keep only best front?)
+        // create temp incremental-list
+        List<T> incList = createIncList();
 
-            // Check if floor(item) is better than the first front of Aeg
-            
-
-            // Discard offspring p if it's dominated by any point
-            // this.increment(a), where a is part of A
-            // (Discard p if it's dominated by any increment(a) in A)
-
-            offspringPopulation.remove(item);
-            // IS THIS CORRECT? (if not dominated, add to population)
-            this.population.add(item);
+        // for-each item in offspring
+        Iterator<T> it = offspringPopulation.iterator();
+        while (it.hasNext()) {
+            T item = it.next();
+            // if any individual from incList dominates the item, remove it.
+            for (T over : incList) {
+                if (comparator.compare(item, over) == 1) {
+                    it.remove();
+                    break;
+                }
+            }    
         }
 
         // Add offsprings to Population, P <-P union O
-        // this.population = union(this.population, offspringPopulation);
+        population = union(this.population, offspringPopulation);
 
         // While abs(Population) > mu, do
         if (this.population.size() > Properties.POPULATION) {
@@ -127,7 +138,9 @@ public class AGEII<T extends Chromosome<T>> extends GeneticAlgorithm<T> {
                 this.population.remove(i);
         }
         // (Update interate counter)
+        
         this.currentIteration++;
+
     }
 
     /**
@@ -138,9 +151,25 @@ public class AGEII<T extends Chromosome<T>> extends GeneticAlgorithm<T> {
      */
     protected void floor(T input) {
         // for i = 1 to d do v[i] <- x[i]/epsilon
-        for (final FitnessFunction<T> ff : this.getFitnessFunctions()) {
-            input.setFitness(ff, (Math.floor(input.getFitness(ff) / Properties.EPSILON)*Properties.EPSILON));
+        for (final FitnessFunction<T> ff : getFitnessFunctions()) {
+
+            // Do math with BigDecimal
+            BigDecimal a = BigDecimal.valueOf(input.getFitness(ff));
+            a = a.multiply(getEpsilon(), MathContext.UNLIMITED);
+            a = a.setScale(0, RoundingMode.FLOOR);
+            a = a.divide(getEpsilon());
+
+            // insert back as double
+            if (!Double.isInfinite(a.doubleValue()))
+                input.setFitness(ff, a.doubleValue());
         }
+    }
+    /**
+     * Get 1 divided by Properties.EPSILON
+     * @return BigDecimal value of 1/Properties.EPSILON
+     */
+    protected BigDecimal getEpsilon() {
+        return BigDecimal.valueOf(1).divide(BigDecimal.valueOf(Properties.EPSILON));
     }
 
     /**
@@ -150,17 +179,18 @@ public class AGEII<T extends Chromosome<T>> extends GeneticAlgorithm<T> {
     protected void floorAndInsert(List<T> input) {
         // floor all individuals
         for (T item : input) {
-            floor(item);
+            T tmp = item.clone();
+            floor(tmp);
             // insert only if individual is not already in list
-            if (!this.approxArchive.contains(item)) {
-                this.approxArchive.add(item);
+            if (!approxArchive.contains(tmp)) {
+                approxArchive.add(tmp);
             }
         }
         // sort (preferably "FastNonDominatedSorting")
-        this.rankingFunction.computeRankingAssignment(this.approxArchive, new LinkedHashSet<FitnessFunction<T>>(this.getFitnessFunctions()));
+        rankingFunction.computeRankingAssignment(this.approxArchive, new LinkedHashSet<FitnessFunction<T>>(getFitnessFunctions()));
         
         // retain only the non-dominating individuals
-        this.approxArchive.retainAll(this.rankingFunction.getSubfront(0));
+        approxArchive.retainAll(rankingFunction.getSubfront(0));
     }
 
     /**
@@ -176,16 +206,26 @@ public class AGEII<T extends Chromosome<T>> extends GeneticAlgorithm<T> {
         }
     }
 
+    protected List<T> createIncList() {
+        List<T> incedList = new ArrayList<>(approxArchive.size());
+        for (T item : approxArchive) {
+            T tmp = item.clone();
+            increment(tmp);
+            incedList.add(tmp);
+        }
+        return incedList;
+    }
+    /** {@inheritDoc} */
     @Override
     public void generateSolution() {
         logger.info("executing generateSolution function");
 
         if (population.isEmpty()) {
-            initializePopulation();
+            this.initializePopulation();
         }
 
         while (!isFinished()) {
-            evolve();
+            this.evolve();
             this.notifyIteration();
             this.writeIndividuals(this.population);
         }
@@ -193,6 +233,7 @@ public class AGEII<T extends Chromosome<T>> extends GeneticAlgorithm<T> {
         notifySearchFinished();
     }
 
+    /** {@inheritDoc} */
     @Override
     public void initializePopulation() {
         // Logging and notifying
@@ -203,16 +244,19 @@ public class AGEII<T extends Chromosome<T>> extends GeneticAlgorithm<T> {
         // initialize population with random individuals
         this.generateInitialPopulation(Properties.POPULATION);
 
+        // Evaluate for each fitness function
+
         // set grid resolution of the approximate archive
+        // already done
 
         // foreach individual in Population, do
         List<T> tmpPop = new ArrayList<>(Properties.POPULATION);
-        tmpPop.addAll(this.population);
+        tmpPop.addAll(population);
         
         // Insert offspring floor(p) in the approximative archive Aeg such that only
         // non-dominated solutions remain
         // TODO: Create test to see if duplicates are put in approxArchive
-        this.floorAndInsert(tmpPop);
+        floorAndInsert(tmpPop);
 
         // Notify
         this.notifyIteration();
