@@ -1,7 +1,8 @@
+from cProfile import label
 import os
-# import numpy
+import numpy as np
 from matplotlib import pyplot
-from pandas import read_csv, Series, DataFrame, errors
+from pandas import read_csv
 
 # go to correct directory
 os.chdir("bin/SF100")
@@ -71,17 +72,50 @@ diversityTimeline_list = [
 # for item in stat2["TARGET_CLASS"].values:
 #     print(item)
 
+# Extract certain class (rows)
 cat = stat2[stat2['TARGET_CLASS'] == 'com.sap.engine.services.dc.wsgate.Stop']
 # print(cat)
-row = cat[coverageTimeline_list]
-row_mean = row.mean()
-# print(row)
-# print(row_mean)
 
-row.plot(kind="box")
+# Extract specific algorithms (rows)
+# rnd_stats = cat[cat['algorithm'] == 'RANDOM_SEARCH']
+nsga_stats = cat[cat['algorithm'] == 'NSGAII']
+
+# Extract specific coverage-type (column)
+# rnd_cov = rnd_stats[coverageTimeline_list]
+nsga_cov = nsga_stats[coverageTimeline_list]
+print(nsga_cov)
+
+# Plot as series (transpose) ??
+# Plot as line (median with std)
+"""
+nsga_errors = nsga_cov.std()
+nsga_median = nsga_cov.median()
+ax = nsga_median.plot(kind='line',
+                      yerr=nsga_errors,
+                      use_index=False,
+                      yticks=np.arange(0.0, 1.0, 0.1),
+                      xlabel='seconds',
+                      ylabel='coverage')
+"""
+
+# Plot as box-plot
+"""ax = nsga_cov.plot(kind='box',
+                   use_index=False,
+                   xlabel='seconds',
+                   grid=True,
+                   yticks=np.arange(0.0, 1.0, 0.1),
+                   ylabel='coverage')
+"""
+
+# Show the plot(s)
 pyplot.show()
-# row.plot()
-# pyplot.show()
+
+# print(cat)
+
+# row1 = nsga_stats[coverageTimeline_list]
+# row2 = rnd_stats[coverageTimeline_list]
+
+# MY OLD WAY OF PLOTTING
 # coverageSeries = pandas.Series(
 #    data=cat.squeeze(),
 #    name="overallCoverage")
