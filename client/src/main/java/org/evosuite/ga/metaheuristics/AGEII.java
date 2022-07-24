@@ -52,7 +52,7 @@ public class AGEII<T extends Chromosome<T>> extends GeneticAlgorithm<T> {
         // O = offspring population
         // mu = population size?
         // lambda = ?????
-        // Aeg = approximative archive
+        // Aeg = approximate archive
         // default epsilon = 0.1 ??
 
         // initialize empty offspring population
@@ -95,7 +95,7 @@ public class AGEII<T extends Chromosome<T>> extends GeneticAlgorithm<T> {
         }
 
         /// foreach individual in offspring population, do
-        /// Insert offspring this.floor(p) in the approximative archive Aeg such that
+        /// Insert offspring this.floor(p) in the approximate archive Aeg such that
         /// only non-dominated solutions remain
         floorAndInsert(offspringPopulation);
         // (Insert only if floor(p) is non-nominating?)
@@ -130,24 +130,22 @@ public class AGEII<T extends Chromosome<T>> extends GeneticAlgorithm<T> {
             // approximation
             // (this should be a ranking function, right?)
 
-            // IS THIS CORRECT? (sort according to rank and crowding distance)
-            this.population.sort(new RankAndCrowdingDistanceComparator<>(true));
-            // IS THIS CORRECT? (walk through individuals which are outside range)
-            for (int i = this.population.size(); i < Properties.POPULATION; i++)
-                // IS THIS CORRECT? (remove individuals)
+            // sort according to rank and crowding distance
+            this.population.sort(new RankAndCrowdingDistanceComparator<>(this.isMaximizationFunction()));
+            // walk through individuals which are outside range
+            for (int i = Properties.POPULATION; i < this.population.size(); i++)
+                // remove individuals
                 this.population.remove(i);
         }
-        // (Update interate counter)
-        
-        this.currentIteration++;
 
+        // (Update iterate counter)
+        this.currentIteration++;
     }
 
     /**
      * Algorithm 1
      * 
      * @param input d-dimensional objective vector x, archive parameter eg
-     * @return Corresponding vector v on the epsilon-grid
      */
     protected void floor(T input) {
         // for i = 1 to d do v[i] <- x[i]/epsilon
@@ -197,7 +195,6 @@ public class AGEII<T extends Chromosome<T>> extends GeneticAlgorithm<T> {
      * Algorithm 2
      * 
      * @param input d-dimensional vector x, archive parameter eg
-     * @return Corresponding vector v that has each of its components increased by 1
      */
     protected void increment(T input) {
         // for i = 1 to d do v[i] <- o[i]+1
@@ -244,8 +241,6 @@ public class AGEII<T extends Chromosome<T>> extends GeneticAlgorithm<T> {
         // initialize population with random individuals
         this.generateInitialPopulation(Properties.POPULATION);
 
-        // Evaluate for each fitness function
-
         // set grid resolution of the approximate archive
         // already done
 
@@ -253,9 +248,8 @@ public class AGEII<T extends Chromosome<T>> extends GeneticAlgorithm<T> {
         List<T> tmpPop = new ArrayList<>(Properties.POPULATION);
         tmpPop.addAll(population);
         
-        // Insert offspring floor(p) in the approximative archive Aeg such that only
+        // Insert offspring floor(p) in the approximate archive Aeg such that only
         // non-dominated solutions remain
-        // TODO: Create test to see if duplicates are put in approxArchive
         floorAndInsert(tmpPop);
 
         // Notify

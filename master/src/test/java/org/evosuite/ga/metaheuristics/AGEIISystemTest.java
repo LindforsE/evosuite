@@ -1,46 +1,27 @@
 package org.evosuite.ga.metaheuristics;
 
+import org.evosuite.Properties;
+import org.evosuite.Properties.StoppingCondition;
 import org.evosuite.SystemTestBase;
-import org.evosuite.Properties.Algorithm;
-import org.evosuite.Properties.Criterion;
-import org.evosuite.testsuite.TestSuiteChromosome;
-import org.evosuite.testsuite.factories.TestSuiteChromosomeFactory;
-import org.evosuite.ga.TestSuiteChromosomeFactoryMock;
-import org.evosuite.ga.comparators.DominanceComparator;
 import org.evosuite.coverage.branch.BranchCoverageSuiteFitness;
 import org.evosuite.coverage.line.LineCoverageSuiteFitness;
+import org.evosuite.ga.ChromosomeFactory;
 import org.evosuite.ga.FitnessFunction;
 import org.evosuite.ga.NSGAChromosome;
-import org.evosuite.ga.operators.ranking.RankBasedPreferenceSorting;
-import org.evosuite.ga.operators.ranking.RankingFunction;
-import org.evosuite.ga.problems.multiobjective.ZDT4;
+import org.evosuite.ga.comparators.DominanceComparator;
 import org.evosuite.ga.operators.crossover.SBXCrossover;
 import org.evosuite.ga.operators.selection.BinaryTournamentSelectionCrowdedComparison;
 import org.evosuite.ga.problems.Problem;
-import org.evosuite.ga.ChromosomeFactory;
-import org.evosuite.Properties;
-import org.evosuite.Properties.StoppingCondition;
-import org.evosuite.EvoSuite;
-import org.evosuite.ga.problems.metrics.Metrics;
-import org.evosuite.ga.problems.metrics.GenerationalDistance;
-
-import com.examples.with.different.packagename.Calculator;
+import org.evosuite.ga.problems.multiobjective.ZDT4;
+import org.evosuite.testsuite.TestSuiteChromosome;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-import java.util.LinkedHashSet;
-import java.util.Iterator;
 
-import static java.util.Comparator.comparingDouble;
-import java.io.IOException;
-
-import org.junit.Test;
-import org.junit.BeforeClass;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertNotNull;
 
 // import java.util.ArrayList;
 // import java.util.List;
