@@ -9,6 +9,7 @@ import org.evosuite.ga.metaheuristics.sibea.HyperVolume;
 import org.evosuite.ga.metaheuristics.sibea.SIBEA;
 import org.evosuite.ga.problems.Problem;
 import org.evosuite.ga.problems.metrics.Metrics;
+import org.evosuite.ga.problems.multiobjective.FON;
 import org.evosuite.ga.problems.multiobjective.KUR;
 import org.evosuite.ga.problems.multiobjective.ZDT1;
 import org.evosuite.testsuite.TestSuiteChromosome;
@@ -115,28 +116,27 @@ public class SIBEASystemTest extends SystemTestBase {
         // instance of HyperVolume
         HyperVolume<NSGAChromosome> hv = new HyperVolume<>(new LinkedHashSet<>(p.getFitnessFunctions()));
 
-        // create reference point (11, 11)
+        // create reference point (1.2, 1.2)
         NSGAChromosome ref = new NSGAChromosome();
         ref.addFitness(f1, 1.2);
         ref.addFitness(f2, 1.2);
         hv.setReference(ref);
 
         // compute HV for ZDT1
-        // TODO: Cross-check against JMetal / MOEAFramework / DEAP / Pymoo / ... .
         assertEquals(1.0669653234149996, hv.computeHV(pop), 0.0000001);
     }
 
     @Test
-    public void testHVKursawe() throws NumberFormatException, IOException {
-        // load ZDT1
-        Problem<NSGAChromosome> p = new KUR();
+    public void testHVFonseca() throws NumberFormatException, IOException {
+        // load Fonseca
+        Problem<NSGAChromosome> p = new FON();
 
         // get its fitness functions
         final FitnessFunction<NSGAChromosome> f1 = p.getFitnessFunctions().get(0);
         final FitnessFunction<NSGAChromosome> f2 = p.getFitnessFunctions().get(1);
 
-        // load ZDT1 front
-        double[][] trueParetoFront = Metrics.readFront("Kursawe.pf");
+        // load Fonseca front
+        double[][] trueParetoFront = Metrics.readFront("Fonseca.pf");
 
         // convert to NSGAChromosomes
         ArrayList<NSGAChromosome> pop = new ArrayList<>();
@@ -150,14 +150,13 @@ public class SIBEASystemTest extends SystemTestBase {
         // instance of HyperVolume
         HyperVolume<NSGAChromosome> hv = new HyperVolume<>(new LinkedHashSet<>(p.getFitnessFunctions()));
 
-        // create reference point (11, 11)
+        // create reference point (2, 2)
         NSGAChromosome ref = new NSGAChromosome();
-        ref.addFitness(f1, 1.2);
-        ref.addFitness(f2, 1.2);
+        ref.addFitness(f1, 2.0);
+        ref.addFitness(f2, 2.0);
         hv.setReference(ref);
 
-        // compute HV for ZDT1
-        // TODO: Cross-check against JMetal / MOEAFramework / DEAP / Pymoo / ... .
-        assertEquals(232.901651811715, hv.computeHV(pop), 0.0000001);
+        // compute HV for Fonseca
+        assertEquals(3.3306458058939996, hv.computeHV(pop), 0.0000001);
     }
 }

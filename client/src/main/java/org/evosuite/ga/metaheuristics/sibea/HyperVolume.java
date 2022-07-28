@@ -96,7 +96,7 @@ public class HyperVolume<T extends Chromosome<T>> {
         // return product {|p[j] - refPoint[j]| | j in {1 .. n}}
         double product = 1.0;
         for (FitnessFunction<T> ff : objectives) {
-            product *= Math.abs(p.getFitness(ff) - reference.getFitness(ff));
+            product *= p.getFitness(ff) - reference.getFitness(ff);
         }
         return product;
     }
@@ -117,15 +117,11 @@ public class HyperVolume<T extends Chromosome<T>> {
         return q;
     }
     private double worse(T a, T b, FitnessFunction<T> f) {
-        if (this.maximize == true) {
-            if (a.getFitness(f) < b.getFitness(f))
-                return a.getFitness(f);
-            return b.getFitness(f);
+        if (this.maximize) {
+            return Math.min(a.getFitness(f), b.getFitness(f));
         }
         else {
-            if (a.getFitness(f) > b.getFitness(f))
-                return a.getFitness(f);
-            return b.getFitness(f);
+            return Math.max(a.getFitness(f), b.getFitness(f));
         }
     }
 
