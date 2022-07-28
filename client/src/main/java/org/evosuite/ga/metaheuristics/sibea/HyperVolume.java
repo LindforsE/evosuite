@@ -106,7 +106,7 @@ public class HyperVolume<T extends Chromosome<T>> {
         //   for j = 1 to n                             (for j = 0 to objectives)
         //     ql[i][j] = worse(p1[k][j], p1[k+i][j])   (ql[i][j] = worse(pl[k][j], pl[k+1+i][j])
         // return ql                                    (return ql)
-        List<T> q = new ArrayList<>();
+        List<T> q = new ArrayList<>(pop.size() - k);
         for (int i = 0; i < pop.size() - 1 - k; i++) {
             T tmp = pop.get(k).clone();
             for (FitnessFunction<T> ff : getObjectives()) {
