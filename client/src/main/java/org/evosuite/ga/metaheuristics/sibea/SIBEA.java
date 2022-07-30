@@ -13,9 +13,7 @@ import org.evosuite.utils.Randomness;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.List;
+import java.util.*;
 
 public class SIBEA<T extends Chromosome<T>> extends GeneticAlgorithm<T> {
     // variables
@@ -40,25 +38,32 @@ public class SIBEA<T extends Chromosome<T>> extends GeneticAlgorithm<T> {
     protected void evolve() {
         // (environmental selection) Iterate the following three steps until the
         // size of the population does no longer exceed mu
-        while (population.size() < Properties.POPULATION) {
+        if (population.size() > Properties.POPULATION) {
             // 1. Rank the population using Pareto Dominance and determine
             // the set of individuals with the worst rank (P').
             // this.population.sort(new DominanceComparator<>()); ???
             rankingFunction.computeRankingAssignment(population, new LinkedHashSet<FitnessFunction<T>>(getFitnessFunctions()));
-            List<T> worst = rankingFunction.getSubfront(rankingFunction.getNumberOfSubfronts());
+            int fronts = rankingFunction.getNumberOfSubfronts();
+            List<T> worst = rankingFunction.getSubfront(fronts--);
 
-
+            // while difference is larger than size of worst front, remove all.
+            while (worst.size() >= (population.size() - Properties.POPULATION)) {
+                population.removeAll(worst);
+                worst = rankingFunction.getSubfront(fronts--);
+            }
 
             // 2. For each solution x from the worst rank P', determine
             // the loss d(x) with regard to the indicator I if it is removed from P'
             // i.e. d(x) := I(P') - I(P'\{x})
-            double hvTotal = HV.computeHV(population);
+            HV.HVSort(population);
 
             // 3. Remove the solution with the smallest loss d(x) from
             // the population P (ties are broken randomly).
-
-            this.currentIteration++;
+            int difference = population.size() - Properties.POPULATION;
+            if (difference >= 1)
+                population.removeAll(worst.subList(0, difference - 1));
         }
+        this.currentIteration++;
     }
 
     /**

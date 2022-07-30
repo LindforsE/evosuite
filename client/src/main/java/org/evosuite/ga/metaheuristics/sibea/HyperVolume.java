@@ -129,8 +129,22 @@ public class HyperVolume<T extends Chromosome<T>> {
      * Sort the population according to loss of HV metric if the individual were to be removed from the population.
      * @param population Population to sort for.
      */
-    protected void HVSort(List<T> population) {
-
+    /** Sorts the population based on the HyperVolume indicator difference when the individual is removed. */
+    public void HVSort(List<T> population) {
+        double hvTotal = computeHV(population);
+        population.sort((T t1, T t2) -> {
+            List<T> tmp1 = new ArrayList<>(population);
+            List<T> tmp2 = new ArrayList<>(population);
+            tmp1.remove(t1);
+            tmp2.remove(t2);
+            double res1 = hvTotal - HV(tmp1);
+            double res2 = hvTotal - HV(tmp2);
+            if (res1 > res2)
+                return 1;
+            else if (res1 == res2)
+                return 0;
+            return -1;
+        });
     }
 
     public Set<FitnessFunction<T>> getObjectives() {

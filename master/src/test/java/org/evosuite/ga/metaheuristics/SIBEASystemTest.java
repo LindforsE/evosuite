@@ -13,9 +13,13 @@ import org.evosuite.ga.problems.multiobjective.FON;
 import org.evosuite.ga.problems.multiobjective.KUR;
 import org.evosuite.ga.problems.multiobjective.ZDT1;
 import org.evosuite.testsuite.TestSuiteChromosome;
+import org.hamcrest.core.CombinableMatcher;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.matchers.JUnitMatchers;
+import org.mockito.Matchers;
+import org.mockito.internal.matchers.Matches;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -158,5 +162,63 @@ public class SIBEASystemTest extends SystemTestBase {
 
         // compute HV for Fonseca
         assertEquals(3.3306458058939996, hv.computeHV(pop), 0.0000001);
+    }
+
+    @Test
+    public void testHVSorter() {
+        // load ZDT1
+        Problem<NSGAChromosome> p = new ZDT1();
+        LinkedHashSet<FitnessFunction<NSGAChromosome>> fitnesses = new LinkedHashSet<>(p.getFitnessFunctions());
+        FitnessFunction<NSGAChromosome> f1 = p.getFitnessFunctions().get(0);
+        FitnessFunction<NSGAChromosome> f2 = p.getFitnessFunctions().get(1);
+
+        // create HV
+        HyperVolume<NSGAChromosome> hv = new HyperVolume<>(fitnesses);
+
+        // create population
+        NSGAChromosome t1 = new NSGAChromosome();
+        NSGAChromosome t2 = new NSGAChromosome();
+        NSGAChromosome t3 = new NSGAChromosome();
+        NSGAChromosome t4 = new NSGAChromosome();
+
+        // create front [[1, 0], [0.5, 0.5], [0, 1], [1.5, 0.75]], ref [2,2]
+        t1.addFitness(f1, 1.0);
+        t1.addFitness(f2, 0.0);
+
+        t2.addFitness(f1, 0.5);
+        t2.addFitness(f2, 0.5);
+
+        t3.addFitness(f1, 0.0);
+        t3.addFitness(f2, 1.0);
+
+        t4.addFitness(f1, 1.5);
+        t4.addFitness(f2, 0.75);
+
+        // create ref-point
+        NSGAChromosome ref = new NSGAChromosome();
+        ref.addFitness(f1, 2.0);
+        ref.addFitness(f2, 2.0);
+
+        // set reference point
+        hv.setReference(ref);
+
+        List<NSGAChromosome> pop = new ArrayList<>();
+        pop.add(t1);
+        pop.add(t2);
+        pop.add(t3);
+        pop.add(t4);
+
+        assertEquals(t1, pop.get(0));
+        assertEquals(t2, pop.get(1));
+        assertEquals(t3, pop.get(2));
+        assertEquals(t4, pop.get(3));
+
+        hv.HVSort(pop);
+
+        // Order checked with jmetal
+        assertEquals(t4, pop.get(0));
+        assertEquals(t2, pop.get(1));
+        assertEquals(t1, pop.get(2));
+        assertEquals(t3, pop.get(3));
     }
 }
