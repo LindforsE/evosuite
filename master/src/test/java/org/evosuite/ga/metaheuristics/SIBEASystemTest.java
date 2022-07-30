@@ -1,6 +1,5 @@
 package org.evosuite.ga.metaheuristics;
 
-import com.examples.with.different.packagename.test.ArrayTest;
 import org.evosuite.Properties;
 import org.evosuite.SystemTestBase;
 import org.evosuite.ga.FitnessFunction;
@@ -10,20 +9,13 @@ import org.evosuite.ga.metaheuristics.sibea.SIBEA;
 import org.evosuite.ga.problems.Problem;
 import org.evosuite.ga.problems.metrics.Metrics;
 import org.evosuite.ga.problems.multiobjective.FON;
-import org.evosuite.ga.problems.multiobjective.KUR;
 import org.evosuite.ga.problems.multiobjective.ZDT1;
 import org.evosuite.testsuite.TestSuiteChromosome;
-import org.hamcrest.core.CombinableMatcher;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.matchers.JUnitMatchers;
-import org.mockito.Matchers;
-import org.mockito.internal.matchers.Matches;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 

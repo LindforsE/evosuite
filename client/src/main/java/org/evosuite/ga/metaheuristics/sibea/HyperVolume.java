@@ -3,12 +3,8 @@ package org.evosuite.ga.metaheuristics.sibea;
 import org.evosuite.ga.Chromosome;
 import org.evosuite.ga.FitnessFunction;
 import org.evosuite.ga.comparators.DominanceComparator;
-import org.evosuite.ga.comparators.SortByFitness;
 import org.evosuite.ga.operators.ranking.FastNonDominatedSorting;
-import org.evosuite.ga.operators.ranking.RankBasedPreferenceSorting;
 import org.evosuite.ga.operators.ranking.RankingFunction;
-import org.evosuite.testcase.variable.NullReference;
-import org.mockito.internal.matchers.Null;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
