@@ -122,7 +122,7 @@ public class AGEII<T extends Chromosome<T>> extends GeneticAlgorithm<T> {
         }
 
         // Add offsprings to Population, P <-P union O
-        population = union(this.population, offspringPopulation);
+        population.addAll(offspringPopulation);
 
         // While abs(Population) > mu, do
         if (this.population.size() > Properties.POPULATION) {
@@ -133,9 +133,7 @@ public class AGEII<T extends Chromosome<T>> extends GeneticAlgorithm<T> {
             // sort according to rank and crowding distance
             this.population.sort(new RankAndCrowdingDistanceComparator<>(this.isMaximizationFunction()));
             // walk through individuals which are outside range
-            for (int i = Properties.POPULATION; i < this.population.size(); i++)
-                // remove individuals
-                this.population.remove(i);
+            population.subList(Properties.POPULATION, this.population.size()).clear();
         }
 
         // (Update iterate counter)
@@ -255,21 +253,4 @@ public class AGEII<T extends Chromosome<T>> extends GeneticAlgorithm<T> {
         // Notify
         this.notifyIteration();
     }
-
-    // Union function
-    protected List<T> union(List<T> population, List<T> offspringPopulation) {
-        int newSize = population.size() + offspringPopulation.size();
-        if (newSize < Properties.POPULATION)
-            newSize = Properties.POPULATION;
-
-        // Create a new population
-        List<T> union = new ArrayList<>(newSize);
-        union.addAll(population);
-
-        for (int i = population.size(); i < (population.size() + offspringPopulation.size()); i++)
-            union.add(offspringPopulation.get(i - population.size()));
-
-        return union;
-    }
-
 }

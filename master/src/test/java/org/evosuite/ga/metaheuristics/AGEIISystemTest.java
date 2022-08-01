@@ -12,8 +12,9 @@ import org.evosuite.ga.comparators.DominanceComparator;
 import org.evosuite.ga.operators.crossover.SBXCrossover;
 import org.evosuite.ga.operators.selection.BinaryTournamentSelectionCrowdedComparison;
 import org.evosuite.ga.problems.Problem;
-import org.evosuite.ga.problems.multiobjective.ZDT4;
+import org.evosuite.ga.problems.multiobjective.ZDT1;
 import org.evosuite.testsuite.TestSuiteChromosome;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -27,8 +28,8 @@ import static org.junit.Assert.assertFalse;
 // import java.util.List;
 
 public class AGEIISystemTest extends SystemTestBase {
-    @BeforeClass
-	public static void setUp() {
+    @Before
+    public void setUp() {
         Properties.POPULATION = 3;
 		Properties.CROSSOVER_RATE = 0.9;
 		Properties.RANDOM_SEED = 1L;
@@ -203,12 +204,12 @@ public class AGEIISystemTest extends SystemTestBase {
     @Test
     public void testGenerateSolutionMethod() {
         Properties.MUTATION_RATE = 1d / 10d;
-        Properties.POPULATION = 100;
+        Properties.POPULATION = 8;
         Properties.SEARCH_BUDGET = 8;
         Properties.STOPPING_CONDITION = StoppingCondition.MAXGENERATIONS;
         Properties.CROSSOVER_RATE = 0.9;
         Properties.RANDOM_SEED = 1L;
-        ChromosomeFactory<NSGAChromosome> factory = new RandomFactory(true, 10, -5.0, 5.0);
+        ChromosomeFactory<NSGAChromosome> factory = new RandomFactory(false, 30, 0.0, 1.0);
 
         GeneticAlgorithm<NSGAChromosome> ga = new AGEII<>(factory);
         BinaryTournamentSelectionCrowdedComparison<NSGAChromosome> ts =
@@ -217,7 +218,7 @@ public class AGEIISystemTest extends SystemTestBase {
         ga.setSelectionFunction(ts);
         ga.setCrossOverFunction(new SBXCrossover());
 
-        Problem<NSGAChromosome> p = new ZDT4();
+        Problem<NSGAChromosome> p = new ZDT1();
         final FitnessFunction<NSGAChromosome> f1 = p.getFitnessFunctions().get(0);
         final FitnessFunction<NSGAChromosome> f2 = p.getFitnessFunctions().get(1);
         ga.addFitnessFunction(f1);
@@ -225,7 +226,8 @@ public class AGEIISystemTest extends SystemTestBase {
 
         // execute
         ga.generateSolution();
-        assertFalse(ga.population.isEmpty());
+        assertEquals(Properties.POPULATION, ga.population.size());
+        //assertFalse(ga.population.isEmpty());
     }
 
     // test the integration
