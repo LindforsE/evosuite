@@ -2,15 +2,18 @@ package org.evosuite.ga.metaheuristics;
 
 import org.evosuite.Properties;
 import org.evosuite.SystemTestBase;
+import org.evosuite.ga.ChromosomeFactory;
 import org.evosuite.ga.FitnessFunction;
 import org.evosuite.ga.NSGAChromosome;
 import org.evosuite.ga.metaheuristics.sibea.HyperVolume;
 import org.evosuite.ga.metaheuristics.sibea.SIBEA;
+import org.evosuite.ga.operators.crossover.SBXCrossover;
+import org.evosuite.ga.operators.selection.BinaryTournamentSelectionCrowdedComparison;
 import org.evosuite.ga.problems.Problem;
 import org.evosuite.ga.problems.metrics.Metrics;
 import org.evosuite.ga.problems.multiobjective.FON;
 import org.evosuite.ga.problems.multiobjective.ZDT1;
-import org.evosuite.testsuite.TestSuiteChromosome;
+import org.evosuite.ga.problems.multiobjective.ZDT4;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -26,15 +29,10 @@ public class SIBEASystemTest extends SystemTestBase {
     public void setUp() {
         Properties.POPULATION = 100;
         Properties.STOPPING_CONDITION = Properties.StoppingCondition.MAXGENERATIONS;
-        Properties.SEARCH_BUDGET = 10_000;
+        Properties.SEARCH_BUDGET = 3;
         Properties.CROSSOVER_RATE = 0.9;
         Properties.RANDOM_SEED = 1L;
         Properties.MUTATION_RATE = 1d / 30d;
-    }
-    @Test
-    public void testSIBEACall() {
-        SIBEA<TestSuiteChromosome> ga = new SIBEA<>(null);
-        assertTrue(true);
     }
 
     @Test
@@ -73,7 +71,6 @@ public class SIBEASystemTest extends SystemTestBase {
 
         // create HV
         HyperVolume<NSGAChromosome> hv = new HyperVolume<>(fitnesses);
-        hv.setMaximize(false);
 
         // add chromosomes to population
         ArrayList<NSGAChromosome> pop = new ArrayList<>();
@@ -212,5 +209,86 @@ public class SIBEASystemTest extends SystemTestBase {
         assertEquals(t2, pop.get(1));
         assertEquals(t1, pop.get(2));
         assertEquals(t3, pop.get(3));
+    }
+    // Test integrations
+    @Test
+    public void testGenerateSolutionMethod() {
+        Properties.POPULATION = 8;
+        ChromosomeFactory<NSGAChromosome> factory = new RandomFactory(true, 10, -5.0, 5.0);
+        GeneticAlgorithm<NSGAChromosome> ga = new SIBEA<>(factory);
+        BinaryTournamentSelectionCrowdedComparison<NSGAChromosome> ts =
+            new BinaryTournamentSelectionCrowdedComparison<>();
+        ts.setMaximize(false);
+        ga.setSelectionFunction(ts);
+        ga.setCrossOverFunction(new SBXCrossover());
+
+        Problem<NSGAChromosome> p = new ZDT4();
+        final FitnessFunction<NSGAChromosome> f1 = p.getFitnessFunctions().get(0);
+        final FitnessFunction<NSGAChromosome> f2 = p.getFitnessFunctions().get(1);
+        ga.addFitnessFunction(f1);
+        ga.addFitnessFunction(f2);
+
+        // execute
+        ga.generateSolution();
+        assertFalse(ga.population.isEmpty());
+        assertEquals(Properties.POPULATION, ga.population.size());
+    }
+    @Test
+    public void testEvolveMethod() throws IOException {
+        // set up two goals
+        ChromosomeFactory<NSGAChromosome> factory = new RandomFactory(true, 10, -5.0, 5.0);
+        GeneticAlgorithm<NSGAChromosome> ga = new SIBEA<>(factory);
+        BinaryTournamentSelectionCrowdedComparison<NSGAChromosome> ts =
+                new BinaryTournamentSelectionCrowdedComparison<>();
+        ts.setMaximize(false);
+        ga.setSelectionFunction(ts);
+        ga.setCrossOverFunction(new SBXCrossover());
+
+        Problem<NSGAChromosome> p = new ZDT4();
+        final FitnessFunction<NSGAChromosome> f1 = p.getFitnessFunctions().get(0);
+        final FitnessFunction<NSGAChromosome> f2 = p.getFitnessFunctions().get(1);
+        ga.addFitnessFunction(f1);
+        ga.addFitnessFunction(f2);
+
+        Properties.POPULATION = 6;
+        // load "BasicTwoTestFronts"
+        double[][] fullFront = Metrics.readFront("BasicTwoTestFronts.pf");
+        for (double[] indiv : fullFront) {
+            NSGAChromosome tmp = new NSGAChromosome();
+            tmp.addFitness(f1, indiv[0]);
+            tmp.addFitness(f2, indiv[1]);
+            ga.population.add(tmp);
+        }
+        Properties.POPULATION = 4;
+
+        // execute
+        ga.evolve();
+
+        // asserts
+        assertEquals(Properties.POPULATION, ga.population.size());
+    }
+
+    @Test
+    public void testMateMethod() {
+        Properties.POPULATION = 10;
+        ChromosomeFactory<NSGAChromosome> factory = new RandomFactory(true, 10, -5.0, 5.0);
+        SIBEA<NSGAChromosome> ga = new SIBEA<>(factory);
+        BinaryTournamentSelectionCrowdedComparison<NSGAChromosome> ts =
+                new BinaryTournamentSelectionCrowdedComparison<>();
+        ts.setMaximize(false);
+        ga.setSelectionFunction(ts);
+        ga.setCrossOverFunction(new SBXCrossover());
+
+        Problem<NSGAChromosome> p = new ZDT4();
+        final FitnessFunction<NSGAChromosome> f1 = p.getFitnessFunctions().get(0);
+        final FitnessFunction<NSGAChromosome> f2 = p.getFitnessFunctions().get(1);
+        ga.addFitnessFunction(f1);
+        ga.addFitnessFunction(f2);
+
+        ga.initializePopulation();
+        assertEquals(Properties.POPULATION, ga.population.size());
+
+        ga.mate();
+        assertEquals(Properties.POPULATION*2, ga.population.size());
     }
 }

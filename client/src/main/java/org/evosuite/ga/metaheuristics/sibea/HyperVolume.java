@@ -16,14 +16,12 @@ public class HyperVolume<T extends Chromosome<T>> {
 
     private T reference;
     private Set<FitnessFunction<T>> objectives;
-    private boolean maximize;
 
     protected RankingFunction<T> rankingFunction = new FastNonDominatedSorting<>();
 
 
     public HyperVolume(Set<? extends FitnessFunction<T>> goals) {
         this.objectives = new LinkedHashSet<>(goals);
-        this.maximize = false;
     }
 
     public T getReference() {
@@ -32,14 +30,6 @@ public class HyperVolume<T extends Chromosome<T>> {
 
     public void setReference(T reference) {
         this.reference = reference;
-    }
-
-    public void setMaximize(boolean a) {
-        this.maximize = a;
-    }
-
-    public boolean getMaximize() {
-        return this.maximize;
     }
 
     public double computeHV(List<T> pop) {
@@ -113,12 +103,7 @@ public class HyperVolume<T extends Chromosome<T>> {
         return q;
     }
     private double worse(T a, T b, FitnessFunction<T> f) {
-        if (this.maximize) {
-            return Math.min(a.getFitness(f), b.getFitness(f));
-        }
-        else {
-            return Math.max(a.getFitness(f), b.getFitness(f));
-        }
+        return Math.max(a.getFitness(f), b.getFitness(f));
     }
 
     /**

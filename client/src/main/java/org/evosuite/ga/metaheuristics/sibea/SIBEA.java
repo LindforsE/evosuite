@@ -17,7 +17,7 @@ public class SIBEA<T extends Chromosome<T>> extends GeneticAlgorithm<T> {
     private static final long serialVersionUID = 4L;
     private static final Logger logger = LoggerFactory.getLogger(AGEII.class);
 
-    private HyperVolume<T> HV;
+    private final HyperVolume<T> HV;
 
 
     /**
@@ -27,7 +27,7 @@ public class SIBEA<T extends Chromosome<T>> extends GeneticAlgorithm<T> {
      */
     public SIBEA(ChromosomeFactory<T> factory) {
         super(factory);
-        HV = new HyperVolume<T>(new LinkedHashSet<FitnessFunction<T>>(getFitnessFunctions()));
+        HV = new HyperVolume<T>(new LinkedHashSet<FitnessFunction<T>>(fitnessFunctions));
     }
 
     /** {@inheritDoc} */
@@ -41,12 +41,12 @@ public class SIBEA<T extends Chromosome<T>> extends GeneticAlgorithm<T> {
             // this.population.sort(new DominanceComparator<>()); ???
             rankingFunction.computeRankingAssignment(population, new LinkedHashSet<FitnessFunction<T>>(getFitnessFunctions()));
             int fronts = rankingFunction.getNumberOfSubfronts();
-            List<T> worst = rankingFunction.getSubfront(fronts--);
+            List<T> worst = rankingFunction.getSubfront(--fronts);
 
-            // while difference is larger than size of worst front, remove all.
-            while (worst.size() >= (population.size() - Properties.POPULATION)) {
+            // while difference is larger than size of worst front, remove whole front and get a new one.
+            while ((population.size() - Properties.POPULATION) >= worst.size() && fronts >= 1) {
                 population.removeAll(worst);
-                worst = rankingFunction.getSubfront(fronts--);
+                worst = rankingFunction.getSubfront(--fronts);
             }
 
             // 2. For each solution x from the worst rank P', determine
@@ -57,8 +57,8 @@ public class SIBEA<T extends Chromosome<T>> extends GeneticAlgorithm<T> {
             // 3. Remove the solution with the smallest loss d(x) from
             // the population P (ties are broken randomly).
             int difference = population.size() - Properties.POPULATION;
-            if (difference >= 1)
-                population.removeAll(worst.subList(0, difference - 1));
+            if (difference > 0)
+                population.subList(0, difference).clear();
         }
         this.currentIteration++;
     }
@@ -66,18 +66,17 @@ public class SIBEA<T extends Chromosome<T>> extends GeneticAlgorithm<T> {
     /**
      * Code for the mating step goes here.
      */
-    protected void mate() {
+    public void mate() {
         // Randomly select elements from P to form a temporary mating pool Q of size mu.
-        ArrayList<T> matingPop = new ArrayList<>(this.population);
+        ArrayList<T> matingPop = new ArrayList<>(this.population.size());
         for (int i = 0; i < Properties.POPULATION/2; i++) {
-            // Apply variation operators such as recombination and mutation to mating pool Q to yield Q'.
             T p1 = Randomness.choice(population);
             T p2 = Randomness.choice(population);
 
             T q1 = p1.clone();
             T q2 = p2.clone();
 
-            // Apply crossover and mutation
+            // Apply variation operators such as recombination and mutation to mating pool Q to yield Q'.
             try {
                 if (Randomness.nextDouble() <= Properties.CROSSOVER_RATE)
                     crossoverFunction.crossOver(q1, q2);
@@ -104,7 +103,7 @@ public class SIBEA<T extends Chromosome<T>> extends GeneticAlgorithm<T> {
             matingPop.add(q2);
         }
         // Set P := P + Q' (multi-set union) and continue with environmental selection.
-        this.union(population, matingPop);
+        population.addAll(matingPop);
     }
 
     /** {@inheritDoc} */
@@ -154,25 +153,4 @@ public class SIBEA<T extends Chromosome<T>> extends GeneticAlgorithm<T> {
 
         notifySearchFinished();
     }
-
-
-
-
-
-    /** Union function. */
-    protected List<T> union(List<T> population, List<T> offspringPopulation) {
-        int newSize = population.size() + offspringPopulation.size();
-        if (newSize < Properties.POPULATION)
-            newSize = Properties.POPULATION;
-
-        // Create a new population
-        List<T> union = new ArrayList<>(newSize);
-        union.addAll(population);
-
-        for (int i = population.size(); i < (population.size() + offspringPopulation.size()); i++)
-            union.add(offspringPopulation.get(i - population.size()));
-
-        return union;
-    }
 }
-
