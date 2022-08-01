@@ -4,6 +4,7 @@ import org.evosuite.Properties;
 import org.evosuite.ga.Chromosome;
 import org.evosuite.ga.ChromosomeFactory;
 import org.evosuite.ga.FitnessFunction;
+import org.evosuite.ga.comparators.DominanceComparator;
 import org.evosuite.ga.metaheuristics.AGEII;
 import org.evosuite.ga.metaheuristics.GeneticAlgorithm;
 import org.evosuite.utils.Randomness;
@@ -27,6 +28,7 @@ public class SIBEA<T extends Chromosome<T>> extends GeneticAlgorithm<T> {
      */
     public SIBEA(ChromosomeFactory<T> factory) {
         super(factory);
+        //rankingFunction = new FastNonDominatedSorting<>();
         HV = new HyperVolume<T>(new LinkedHashSet<FitnessFunction<T>>(fitnessFunctions));
     }
 
@@ -38,13 +40,12 @@ public class SIBEA<T extends Chromosome<T>> extends GeneticAlgorithm<T> {
         if (population.size() > Properties.POPULATION) {
             // 1. Rank the population using Pareto Dominance and determine
             // the set of individuals with the worst rank (P').
-            // this.population.sort(new DominanceComparator<>()); ???
-            rankingFunction.computeRankingAssignment(population, new LinkedHashSet<FitnessFunction<T>>(getFitnessFunctions()));
+            rankingFunction.computeRankingAssignment(population, new LinkedHashSet<FitnessFunction<T>>(fitnessFunctions));
             int fronts = rankingFunction.getNumberOfSubfronts();
             List<T> worst = rankingFunction.getSubfront(--fronts);
 
             // while difference is larger than size of worst front, remove whole front and get a new one.
-            while ((population.size() - Properties.POPULATION) >= worst.size() && fronts >= 1) {
+            while ((population.size() - worst.size()) >= Properties.POPULATION && fronts >= 1) {
                 population.removeAll(worst);
                 worst = rankingFunction.getSubfront(--fronts);
             }
@@ -52,13 +53,14 @@ public class SIBEA<T extends Chromosome<T>> extends GeneticAlgorithm<T> {
             // 2. For each solution x from the worst rank P', determine
             // the loss d(x) with regard to the indicator I if it is removed from P'
             // i.e. d(x) := I(P') - I(P'\{x})
-            HV.HVSort(population);
+            HV.setReference(lower(bestOf(worst)));
+            HV.HVSort(worst);
 
             // 3. Remove the solution with the smallest loss d(x) from
             // the population P (ties are broken randomly).
             int difference = population.size() - Properties.POPULATION;
-            if (difference > 0)
-                population.subList(0, difference).clear();
+            for (int i = 0; i < difference; i++)
+                population.remove(worst.get(i));
         }
         this.currentIteration++;
     }
@@ -115,6 +117,12 @@ public class SIBEA<T extends Chromosome<T>> extends GeneticAlgorithm<T> {
         // initialize population with random individuals
         this.generateInitialPopulation(Properties.POPULATION);
 
+        for (T indiv : population) {
+            for (FitnessFunction<T> ff : fitnessFunctions) {
+                ff.getFitness(indiv);
+            }
+        }
+
         // Generate an initial set of decision vectors P of size mu,
 
         // set the generation counter m := 0.
@@ -152,5 +160,21 @@ public class SIBEA<T extends Chromosome<T>> extends GeneticAlgorithm<T> {
         }
 
         notifySearchFinished();
+    }
+
+    private T bestOf(List<T> pop) {
+        List<T> tmp = new ArrayList<>(pop);
+        tmp.sort(new DominanceComparator<>());
+        return tmp.get(0);
+    }
+
+    private T lower(T individual) {
+        for (FitnessFunction<T> ff : fitnessFunctions) {
+            if (individual.getFitness(ff) -0.1 <= 0)
+                individual.setFitness(ff, 0);
+            else
+                individual.setFitness(ff, individual.getFitness(ff) -0.1);
+        }
+        return individual;
     }
 }
