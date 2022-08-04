@@ -25,7 +25,7 @@ import static org.junit.Assert.*;
 
 public class SIBEASystemTest extends SystemTestBase {
     @Before
-    public void setUp() {
+    public void setup() {
         Properties.POPULATION = 100;
         Properties.STOPPING_CONDITION = Properties.StoppingCondition.MAXGENERATIONS;
         Properties.SEARCH_BUDGET = 3;
@@ -210,6 +210,60 @@ public class SIBEASystemTest extends SystemTestBase {
         assertEquals(t3, pop.get(3));
     }
 
+    @Test
+    public void testFasterHVSorter() {
+        Problem<NSGAChromosome> p = new ZDT1();
+        FitnessFunction<NSGAChromosome> f1 = p.getFitnessFunctions().get(0);
+        FitnessFunction<NSGAChromosome> f2 = p.getFitnessFunctions().get(1);
+        LinkedHashSet<FitnessFunction<NSGAChromosome>> fitnesses = new LinkedHashSet<>(p.getFitnessFunctions());
+        HyperVolume<NSGAChromosome> hv = new HyperVolume<>(fitnesses);
+
+        // create population
+        NSGAChromosome t1 = new NSGAChromosome();
+        NSGAChromosome t2 = new NSGAChromosome();
+        NSGAChromosome t3 = new NSGAChromosome();
+        NSGAChromosome t4 = new NSGAChromosome();
+
+        // create front [[1, 0], [0.5, 0.5], [0, 1], [1.5, 0.75]], ref [2,2]
+        t1.addFitness(f1, 1.0);
+        t1.addFitness(f2, 0.0);
+
+        t2.addFitness(f1, 0.5);
+        t2.addFitness(f2, 0.5);
+
+        t3.addFitness(f1, 0.0);
+        t3.addFitness(f2, 1.0);
+
+        t4.addFitness(f1, 1.5);
+        t4.addFitness(f2, 0.75);
+
+        // create ref-point
+        NSGAChromosome ref = new NSGAChromosome();
+        ref.addFitness(f1, 2.0);
+        ref.addFitness(f2, 2.0);
+
+        // set reference point
+        hv.setReference(ref);
+
+        List<NSGAChromosome> pop = new ArrayList<>();
+        pop.add(t1);
+        pop.add(t2);
+        pop.add(t3);
+        pop.add(t4);
+
+        assertEquals(t1, pop.get(0));
+        assertEquals(t2, pop.get(1));
+        assertEquals(t3, pop.get(2));
+        assertEquals(t4, pop.get(3));
+
+        List<NSGAChromosome> sortedPop = hv.fasterHVSort(pop);
+
+        assertEquals(t4, sortedPop.get(0));
+        assertEquals(t2, sortedPop.get(1));
+        assertEquals(t1, sortedPop.get(2));
+        assertEquals(t3, sortedPop.get(3));
+    }
+
     // Test integrations
     @Test
     public void testGenerateSolutionMethod() {
@@ -235,6 +289,10 @@ public class SIBEASystemTest extends SystemTestBase {
     }
     @Test
     public void testEvolveMethod() throws IOException {
+        Properties.POPULATION = 6;
+        double[][] fullFront = Metrics.readFront("BasicTwoTestFronts.pf");
+        Properties.POPULATION = 4;
+
         ChromosomeFactory<NSGAChromosome> factory = new RandomFactory(false, 30, 0.0, 1.0);
         GeneticAlgorithm<NSGAChromosome> ga = new SIBEA<>(factory);
         BinaryTournamentSelectionCrowdedComparison<NSGAChromosome> ts =
@@ -251,15 +309,12 @@ public class SIBEASystemTest extends SystemTestBase {
         ga.addFitnessFunction(f2);
 
         // load "BasicTwoTestFronts"
-        Properties.POPULATION = 6;
-        double[][] fullFront = Metrics.readFront("BasicTwoTestFronts.pf");
         for (double[] indiv : fullFront) {
             NSGAChromosome tmp = new NSGAChromosome();
             tmp.addFitness(f1, indiv[0]);
             tmp.addFitness(f2, indiv[1]);
             ga.population.add(tmp);
         }
-        Properties.POPULATION = 4;
 
         // execute
         ga.evolve();
@@ -291,4 +346,38 @@ public class SIBEASystemTest extends SystemTestBase {
         ga.mate();
         assertEquals(Properties.POPULATION*2, ga.population.size());
     }
+
+    /*@Test
+    public void test1000GenerationsZDT1() {
+        // initial settings
+        Properties.POPULATION = 20;
+        Properties.SEARCH_BUDGET = 30;
+
+        ChromosomeFactory<NSGAChromosome> factory = new RandomFactory(false, 30, 0.0, 1.0);
+        SIBEA<NSGAChromosome> ga = new SIBEA<>(factory);
+        BinaryTournamentSelectionCrowdedComparison<NSGAChromosome> ts =
+                new BinaryTournamentSelectionCrowdedComparison<>();
+        ts.setMaximize(false);
+        ga.setSelectionFunction(ts);
+        ga.setCrossOverFunction(new SBXCrossover());
+
+        Problem<NSGAChromosome> p = new ZDT1();
+        final FitnessFunction<NSGAChromosome> f1 = p.getFitnessFunctions().get(0);
+        final FitnessFunction<NSGAChromosome> f2 = p.getFitnessFunctions().get(1);
+        ga.addFitnessFunction(f1);
+        ga.addFitnessFunction(f2);
+
+        NSGAChromosome reference = new NSGAChromosome();
+        reference.setFitness(f1, 0.5);
+        reference.setFitness(f2, 0.6);
+        ga.setPermanentReference(true, reference);
+
+        ga.generateSolution();
+
+        // basic assertion
+        assertEquals(Properties.POPULATION, ga.population.size());
+
+        // advanced assertion
+    }
+     */
 }

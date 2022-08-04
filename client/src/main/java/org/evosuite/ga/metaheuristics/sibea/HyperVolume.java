@@ -1,15 +1,13 @@
 package org.evosuite.ga.metaheuristics.sibea;
 
+import com.sun.tools.javac.util.Pair;
 import org.evosuite.ga.Chromosome;
 import org.evosuite.ga.FitnessFunction;
 import org.evosuite.ga.comparators.DominanceComparator;
 import org.evosuite.ga.operators.ranking.FastNonDominatedSorting;
 import org.evosuite.ga.operators.ranking.RankingFunction;
 
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class HyperVolume<T extends Chromosome<T>> {
     // TODO: There is a package org.evosuite.ga.problems.metrics, though it's a cross-package??? Any way to use?
@@ -18,7 +16,6 @@ public class HyperVolume<T extends Chromosome<T>> {
     private Set<FitnessFunction<T>> objectives;
 
     protected RankingFunction<T> rankingFunction = new FastNonDominatedSorting<>();
-
 
     public HyperVolume(Set<? extends FitnessFunction<T>> goals) {
         this.objectives = new LinkedHashSet<>(goals);
@@ -58,7 +55,8 @@ public class HyperVolume<T extends Chromosome<T>> {
      */
     protected double HV(List<T> pop) {
         // return sum {exclHV(p1, k) | k in {1 .. |p1|}}
-        pop.sort(new DominanceComparator<>());
+        if (pop.size() > 1)
+            pop.sort(new DominanceComparator<>());
         double sum = 0.0;
         for (int i = 0; i < pop.size(); i++) {
             sum += exclHV(pop, i);
@@ -86,6 +84,7 @@ public class HyperVolume<T extends Chromosome<T>> {
         }
         return product;
     }
+
 
     private List<T> limitSet(List<T> pop, int k) {
         // for i = 1 to |p1| - k                        (for i = 0 to |pk| - 1 - k)
@@ -126,6 +125,36 @@ public class HyperVolume<T extends Chromosome<T>> {
                 return 0;
             return -1;
         });
+    }
+
+    public List<T> fasterHVSort(List<T> population) {
+        double hvTotal = computeHV(population);
+        List<Pair<T, Double>> toSort = new ArrayList<>(population.size());
+        List<T> tmp = new ArrayList<>(population);
+
+        // Calculate the HV for each individual if they were removed
+        for (T indiv : population) {
+            tmp.remove(indiv);
+            Pair<T, Double> value = new Pair<>(indiv, hvTotal - HV(tmp));
+            toSort.add(value);
+            tmp.add(indiv);
+        }
+        // sort the pairs using the second value
+        toSort.sort((Pair<T, Double> a, Pair<T, Double> b) -> {
+            if (a.snd > b.snd)
+                return 1;
+            else if (a.snd < b.snd)
+                return -1;
+            return 0;
+        });
+
+        // extract only the T's
+        List<T> sorted = new ArrayList<>(population.size());
+        for (Pair<T, Double> pair : toSort) {
+            sorted.add(pair.fst);
+        }
+
+        return sorted;
     }
 
     public Set<FitnessFunction<T>> getObjectives() {

@@ -18,6 +18,9 @@ public class SIBEA<T extends Chromosome<T>> extends GeneticAlgorithm<T> {
     private static final long serialVersionUID = 4L;
     private static final Logger logger = LoggerFactory.getLogger(AGEII.class);
 
+    private boolean permanentReference = false;
+    private T referenceGoal;
+
     private final HyperVolume<T> HV;
 
 
@@ -40,8 +43,11 @@ public class SIBEA<T extends Chromosome<T>> extends GeneticAlgorithm<T> {
         if (population.size() > Properties.POPULATION) {
             // 1. Rank the population using Pareto Dominance and determine
             // the set of individuals with the worst rank (P').
+            int tmpPopulation = Properties.POPULATION;
+            Properties.POPULATION = population.size();
             rankingFunction.computeRankingAssignment(population, new LinkedHashSet<FitnessFunction<T>>(fitnessFunctions));
             int fronts = rankingFunction.getNumberOfSubfronts();
+            Properties.POPULATION = tmpPopulation;
             List<T> worst = rankingFunction.getSubfront(--fronts);
 
             // while difference is larger than size of worst front, remove whole front and get a new one.
@@ -53,8 +59,12 @@ public class SIBEA<T extends Chromosome<T>> extends GeneticAlgorithm<T> {
             // 2. For each solution x from the worst rank P', determine
             // the loss d(x) with regard to the indicator I if it is removed from P'
             // i.e. d(x) := I(P') - I(P'\{x})
-            HV.setReference(lower(bestOf(worst)));
-            HV.HVSort(worst);
+            if (!permanentReference)
+                HV.setReference(lower(bestOf(worst)));
+            else
+                HV.setReference(referenceGoal);
+            worst = HV.fasterHVSort(worst);
+            //HV.HVSort(worst);
 
             // 3. Remove the solution with the smallest loss d(x) from
             // the population P (ties are broken randomly).
@@ -176,5 +186,10 @@ public class SIBEA<T extends Chromosome<T>> extends GeneticAlgorithm<T> {
                 individual.setFitness(ff, individual.getFitness(ff) -0.1);
         }
         return individual;
+    }
+
+    public void setPermanentReference(boolean value, T reference) {
+        this.permanentReference = value;
+        this.referenceGoal = reference;
     }
 }
