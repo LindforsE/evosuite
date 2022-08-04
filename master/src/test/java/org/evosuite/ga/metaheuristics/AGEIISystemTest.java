@@ -1,5 +1,7 @@
 package org.evosuite.ga.metaheuristics;
 
+import com.examples.with.different.packagename.Calculator;
+import org.evosuite.EvoSuite;
 import org.evosuite.Properties;
 import org.evosuite.Properties.StoppingCondition;
 import org.evosuite.SystemTestBase;
@@ -15,14 +17,12 @@ import org.evosuite.ga.problems.Problem;
 import org.evosuite.ga.problems.multiobjective.ZDT1;
 import org.evosuite.testsuite.TestSuiteChromosome;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.*;
 
 // import java.util.ArrayList;
 // import java.util.List;
@@ -204,7 +204,7 @@ public class AGEIISystemTest extends SystemTestBase {
     @Test
     public void testGenerateSolutionMethod() {
         Properties.MUTATION_RATE = 1d / 10d;
-        Properties.POPULATION = 8;
+        Properties.POPULATION = 20;
         Properties.SEARCH_BUDGET = 8;
         Properties.STOPPING_CONDITION = StoppingCondition.MAXGENERATIONS;
         Properties.CROSSOVER_RATE = 0.9;
@@ -231,20 +231,23 @@ public class AGEIISystemTest extends SystemTestBase {
     }
 
     // test the integration
-    /*
+
     @Test
     public void testIntegration() {
         // Properties
         Properties.MUTATION_RATE = 1d / 1d;
-	    Properties.CRITERION = new Criterion[2];
-        Properties.CRITERION[0] = Criterion.RHO;
-        Properties.CRITERION[1] = Criterion.AMBIGUITY;
-	    Properties.ALGORITHM = Algorithm.AGEII;
+        Properties.POPULATION = 20;
+        Properties.CRITERION = new Properties.Criterion[1];
+        Properties.CRITERION[0] = Properties.Criterion.BRANCH;
+	    Properties.ALGORITHM = Properties.Algorithm.AGEII;
 	    Properties.SELECTION_FUNCTION = Properties.SelectionFunction.BINARY_TOURNAMENT;
 	    Properties.MINIMIZE = false;
 	    Properties.INLINE = false;
-	    Properties.STOP_ZERO = false;
+	    Properties.STOP_ZERO = true;
 	    Properties.RANKING_TYPE = Properties.RankingType.FAST_NON_DOMINATED_SORTING;
+        Properties.EPSILON = 0.1;
+        Properties.SEARCH_BUDGET = 20;
+        Properties.STOPPING_CONDITION = StoppingCondition.MAXTIME;
 
         // Evosuite
         EvoSuite evosuite = new EvoSuite();
@@ -262,6 +265,15 @@ public class AGEIISystemTest extends SystemTestBase {
         // start
         Object result = evosuite.parseCommandLine(command);
         assertNotNull(result);
+
+        @SuppressWarnings("unchecked")
+        GeneticAlgorithm<TestSuiteChromosome> ga =
+                (GeneticAlgorithm<TestSuiteChromosome>) getGAFromResult(result);
+
+        final FitnessFunction<TestSuiteChromosome> ff = ga.getFitnessFunctions().get(0);
+
+        List<TestSuiteChromosome> population = new ArrayList<>(ga.getBestIndividuals());
+        assertEquals(0.0, population.get(0).getFitness(ff), 0.0);
     }
-    */
+
 }

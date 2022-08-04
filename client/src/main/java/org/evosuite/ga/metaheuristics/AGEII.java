@@ -60,7 +60,7 @@ public class AGEII<T extends Chromosome<T>> extends GeneticAlgorithm<T> {
 
         // for j <- 1 to lambda, do
         // WHAT IS LAMBDA? (mu is Population size, lambda is ???)
-        for (int i = 0; i < (this.population.size() / 2); i++) {
+        for (int i = 0; i < (population.size() / 2); i++) {
             // Select two individuals from Population
             T parent1 = selectionFunction.select(population);
             T parent2 = selectionFunction.select(population);
@@ -153,7 +153,7 @@ public class AGEII<T extends Chromosome<T>> extends GeneticAlgorithm<T> {
             BigDecimal a = BigDecimal.valueOf(input.getFitness(ff));
             a = a.multiply(getEpsilon(), MathContext.UNLIMITED);
             a = a.setScale(0, RoundingMode.FLOOR);
-            a = a.divide(getEpsilon());
+            a = a.divide(getEpsilon(), MathContext.UNLIMITED);
 
             // insert back as double
             if (!Double.isInfinite(a.doubleValue()))
@@ -238,6 +238,12 @@ public class AGEII<T extends Chromosome<T>> extends GeneticAlgorithm<T> {
 
         // initialize population with random individuals
         this.generateInitialPopulation(Properties.POPULATION);
+
+        for (T indiv : population) {
+            for (FitnessFunction<T> ff : fitnessFunctions) {
+                ff.getFitness(indiv);
+            }
+        }
 
         // set grid resolution of the approximate archive
         // already done
