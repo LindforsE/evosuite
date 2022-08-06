@@ -1,5 +1,7 @@
 package org.evosuite.ga.metaheuristics;
 
+import com.examples.with.different.packagename.Calculator;
+import org.evosuite.EvoSuite;
 import org.evosuite.Properties;
 import org.evosuite.SystemTestBase;
 import org.evosuite.ga.ChromosomeFactory;
@@ -13,6 +15,7 @@ import org.evosuite.ga.problems.Problem;
 import org.evosuite.ga.problems.metrics.Metrics;
 import org.evosuite.ga.problems.multiobjective.FON;
 import org.evosuite.ga.problems.multiobjective.ZDT1;
+import org.evosuite.testsuite.TestSuiteChromosome;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -26,12 +29,11 @@ import static org.junit.Assert.*;
 public class SIBEASystemTest extends SystemTestBase {
     @Before
     public void setup() {
-        Properties.POPULATION = 100;
-        Properties.STOPPING_CONDITION = Properties.StoppingCondition.MAXGENERATIONS;
-        Properties.SEARCH_BUDGET = 3;
+        Properties.POPULATION = 10;
         Properties.CROSSOVER_RATE = 0.9;
         Properties.RANDOM_SEED = 1L;
-        Properties.MUTATION_RATE = 1d / 30d;
+        Properties.STOPPING_CONDITION = Properties.StoppingCondition.MAXGENERATIONS;
+        Properties.SEARCH_BUDGET = 5;
     }
 
     @Test
@@ -94,6 +96,7 @@ public class SIBEASystemTest extends SystemTestBase {
         final FitnessFunction<NSGAChromosome> f2 = p.getFitnessFunctions().get(1);
 
         // load ZDT1 front
+        Properties.POPULATION = 100;
         double[][] trueParetoFront = Metrics.readFront("ZDT1.pf");
 
         // convert to NSGAChromosomes
@@ -128,6 +131,7 @@ public class SIBEASystemTest extends SystemTestBase {
         final FitnessFunction<NSGAChromosome> f2 = p.getFitnessFunctions().get(1);
 
         // load Fonseca front
+        Properties.POPULATION = 100;
         double[][] trueParetoFront = Metrics.readFront("Fonseca.pf");
 
         // convert to NSGAChromosomes
@@ -267,7 +271,7 @@ public class SIBEASystemTest extends SystemTestBase {
     // Test integrations
     @Test
     public void testGenerateSolutionMethod() {
-        Properties.POPULATION = 100;
+        Properties.POPULATION = 20;
         ChromosomeFactory<NSGAChromosome> factory = new RandomFactory(false, 30, 0.0, 1.0);
         GeneticAlgorithm<NSGAChromosome> ga = new SIBEA<>(factory);
         BinaryTournamentSelectionCrowdedComparison<NSGAChromosome> ts =
@@ -345,6 +349,50 @@ public class SIBEASystemTest extends SystemTestBase {
 
         ga.mate();
         assertEquals(Properties.POPULATION*2, ga.population.size());
+    }
+
+    @Test
+    public void testIntegration() {
+        // Properties
+        Properties.MUTATION_RATE = 1d;
+        Properties.POPULATION = 20;
+        Properties.CRITERION = new Properties.Criterion[1];
+        Properties.CRITERION[0] = Properties.Criterion.BRANCH;
+        Properties.ALGORITHM = Properties.Algorithm.SIBEA;
+        Properties.SELECTION_FUNCTION = Properties.SelectionFunction.BINARY_TOURNAMENT;
+        Properties.MINIMIZE = false;
+        Properties.INLINE = false;
+        Properties.STOP_ZERO = true;
+        Properties.RANKING_TYPE = Properties.RankingType.FAST_NON_DOMINATED_SORTING;
+        Properties.EPSILON = 0.1;
+        Properties.SEARCH_BUDGET = 20;
+        Properties.STOPPING_CONDITION = Properties.StoppingCondition.MAXTIME;
+
+        // Evosuite
+        EvoSuite evosuite = new EvoSuite();
+
+        // CUT (class under test)
+        String targetClass = Calculator.class.getCanonicalName();
+        Properties.TARGET_CLASS = targetClass;
+
+        // commands to use
+        String[] command = new String[] {
+                "-generateSuite",
+                "-class", targetClass
+        };
+
+        // start
+        Object result = evosuite.parseCommandLine(command);
+        assertNotNull(result);
+
+        @SuppressWarnings("unchecked")
+        GeneticAlgorithm<TestSuiteChromosome> ga =
+                (GeneticAlgorithm<TestSuiteChromosome>) getGAFromResult(result);
+
+        final FitnessFunction<TestSuiteChromosome> ff = ga.getFitnessFunctions().get(0);
+
+        List<TestSuiteChromosome> population = new ArrayList<>(ga.getBestIndividuals());
+        assertEquals(0.0, population.get(0).getFitness(ff), 0.0);
     }
 
     /*@Test

@@ -319,7 +319,7 @@ public class Properties {
 		// multiple-objective optimisation algorithms
 		NSGAII, SPEA2,
 		// Own implemented algorithms
-		MOEAD, AGEII
+		MOEAD, AGEII, SIBEA
 	}
 
 	// MOSA PROPERTIES

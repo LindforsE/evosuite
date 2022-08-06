@@ -7,10 +7,11 @@ import org.evosuite.ga.comparators.DominanceComparator;
 import org.evosuite.ga.operators.ranking.FastNonDominatedSorting;
 import org.evosuite.ga.operators.ranking.RankingFunction;
 
+import java.io.Serializable;
 import java.util.*;
 
-public class HyperVolume<T extends Chromosome<T>> {
-    // TODO: There is a package org.evosuite.ga.problems.metrics, though it's a cross-package??? Any way to use?
+public class HyperVolume<T extends Chromosome<T>> implements Serializable {
+    private static final long serialVersionUID = 1L;
 
     private T reference;
     private Set<FitnessFunction<T>> objectives;

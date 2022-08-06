@@ -34,6 +34,7 @@ import org.evosuite.ga.metaheuristics.mulambda.MuLambdaEA;
 import org.evosuite.ga.metaheuristics.mulambda.MuPlusLambdaEA;
 import org.evosuite.ga.metaheuristics.mulambda.OnePlusLambdaLambdaGA;
 import org.evosuite.ga.metaheuristics.mulambda.OnePlusOneEA;
+import org.evosuite.ga.metaheuristics.sibea.SIBEA;
 import org.evosuite.ga.operators.crossover.CrossOverFunction;
 import org.evosuite.ga.operators.crossover.SinglePointCrossOver;
 import org.evosuite.ga.operators.crossover.SinglePointFixedCrossOver;
@@ -158,6 +159,9 @@ public class PropertiesTestGAFactory
 		case AGEII:
 			logger.info("Chosen search algorithm: AGEII");
 			return new AGEII<>(factory);
+		case SIBEA:
+			logger.info("Chosen search algorithm: SIBEA");
+			return new SIBEA<>(factory);
 		case MOEAD:
 			logger.info("Chosen search algorithm: MOEAD");
 			return new MOEAD<>(factory);

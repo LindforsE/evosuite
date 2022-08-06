@@ -183,7 +183,7 @@ public class AGEII<T extends Chromosome<T>> extends GeneticAlgorithm<T> {
             }
         }
         // sort (preferably "FastNonDominatedSorting")
-        rankingFunction.computeRankingAssignment(this.approxArchive, new LinkedHashSet<FitnessFunction<T>>(getFitnessFunctions()));
+        rankingFunction.computeRankingAssignment(this.approxArchive, new LinkedHashSet<FitnessFunction<T>>(fitnessFunctions));
         
         // retain only the non-dominating individuals
         approxArchive.retainAll(rankingFunction.getSubfront(0));
