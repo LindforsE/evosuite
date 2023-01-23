@@ -202,7 +202,7 @@ public class Properties {
 	//@Deprecated
 	// does not seem to be used anywhere
 	// I use it now
-	public static double EPSILON = 0.1;
+	public static double EPSILON = 0.01;
 
 	@Parameter(key = "max_int", group = "Test Creation", description = "Maximum size of randomly generated integers (minimum range = -1 * max)")
 	public static int MAX_INT = 2048;

@@ -1,4 +1,3 @@
-from cProfile import label
 import os
 import numpy as np
 from matplotlib import pyplot
@@ -30,7 +29,7 @@ for item in dirFolders:
         pass
     os.chdir("../")"""
 
-os.chdir("101_netweaver/evosuite-report/")
+os.chdir("78_caloriecount/evosuite-report/")
 stat2 = read_csv("statistics.csv", delimiter=',')
 
 # timelines to be merged (_T1 -> _T60)
@@ -73,30 +72,65 @@ diversityTimeline_list = [
 #     print(item)
 
 # Extract certain class (rows)
-cat = stat2[stat2['TARGET_CLASS'] == 'com.sap.engine.services.dc.wsgate.Stop']
+cat = stat2[stat2['TARGET_CLASS'] == 'com.lts.application.swing.error.StackTracePanel']
 # print(cat)
 
 # Extract specific algorithms (rows)
-# rnd_stats = cat[cat['algorithm'] == 'RANDOM_SEARCH']
-nsga_stats = cat[cat['algorithm'] == 'NSGAII']
+# cat = cat[cat['algorithm'] == 'NSGAII']
+# cat = cat[cat['algorithm'] == 'SPEA2']
+# cat = cat[cat['algorithm'] == 'RANDOM_SEARCH']
+# cat = cat[cat['algorithm'] == 'AGEII']
+cat = cat[cat['algorithm'] == 'SIBEA']
+
+# FOR SIBEA
+# Execute algorithm with 1 generation
+# -Dstopping_condition=MAXGENERATIONS -Dsearch_budget=1
+#
+# This should give 10 "worst-case" results.
+# Then execute with 1 hour limit, and use as many as possible of them.
+# Explain this in the thesis !!
+
+goals = cat['Total_Goals']
+print(goals)
+nsga_final_cov = cat[['Covered_Goals', 'Coverage', 'LineCoverage', 'BranchCoverage', 'MethodCoverage', 'StatementCoverage', 'Generations']]
+
+print(nsga_final_cov)
+
+nsga_final_cov.to_csv("../../../output.csv", index=False)
+
+with open("../../../output.csv", "r+") as file:
+    data = file.read().replace(',', '\t')
+    # data = data.replace('.', ',')
+    file.seek(0)
+    file.write(data)
+
+# 1. List all classes for project
+# 2. Use list to retrieve:
+#   covered goals
+#   total goals
+#   Final coverage values for
+#       Branch
+#       Line
+#       Method
+#       Statement
 
 # Extract specific coverage-type (column)
 # rnd_cov = rnd_stats[coverageTimeline_list]
-nsga_cov = nsga_stats[coverageTimeline_list]
-print(nsga_cov)
+# nsga_cov = nsga_stats[coverageTimeline_list]
+# print(nsga_cov)
 
 # Plot as series (transpose) ??
 # Plot as line (median with std)
-"""
-nsga_errors = nsga_cov.std()
+
+"""nsga_errors = nsga_cov.std()
 nsga_median = nsga_cov.median()
 ax = nsga_median.plot(kind='line',
                       yerr=nsga_errors,
                       use_index=False,
                       yticks=np.arange(0.0, 1.0, 0.1),
                       xlabel='seconds',
-                      ylabel='coverage')
-"""
+                      ylabel='coverage')"""
+
 
 # Plot as box-plot
 """ax = nsga_cov.plot(kind='box',
@@ -104,11 +138,11 @@ ax = nsga_median.plot(kind='line',
                    xlabel='seconds',
                    grid=True,
                    yticks=np.arange(0.0, 1.0, 0.1),
-                   ylabel='coverage')
-"""
+                   ylabel='coverage')"""
+
 
 # Show the plot(s)
-pyplot.show()
+# pyplot.show()
 
 # print(cat)
 

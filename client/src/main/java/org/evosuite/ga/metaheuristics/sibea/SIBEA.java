@@ -51,7 +51,7 @@ public class SIBEA<T extends Chromosome<T>> extends GeneticAlgorithm<T> {
             List<T> worst = rankingFunction.getSubfront(--fronts);
 
             // while difference is larger than size of worst front, remove whole front and get a new one.
-            while ((population.size() - worst.size()) >= Properties.POPULATION && fronts >= 1) {
+            // 2023: Could this become an infinite loop?
                 population.removeAll(worst);
                 worst = rankingFunction.getSubfront(--fronts);
             }
@@ -60,6 +60,7 @@ public class SIBEA<T extends Chromosome<T>> extends GeneticAlgorithm<T> {
             // the loss d(x) with regard to the indicator I if it is removed from P'
             // i.e. d(x) := I(P') - I(P'\{x})
             if (!permanentReference)
+                // 2023: What happens to the individual we assign as reference point?
                 HV.setReference(lower(bestOf(worst)));
             else
                 HV.setReference(referenceGoal);
@@ -69,8 +70,10 @@ public class SIBEA<T extends Chromosome<T>> extends GeneticAlgorithm<T> {
             // 3. Remove the solution with the smallest loss d(x) from
             // the population P (ties are broken randomly).
             int difference = population.size() - Properties.POPULATION;
-            for (int i = 0; i < difference; i++)
-                population.remove(worst.get(i));
+            if (difference >= 0) {
+                for (int i = 0; i < difference; i++)
+                    population.remove(worst.get(i));
+            }
         }
         this.currentIteration++;
     }
@@ -81,7 +84,8 @@ public class SIBEA<T extends Chromosome<T>> extends GeneticAlgorithm<T> {
     public void mate() {
         // Randomly select elements from P to form a temporary mating pool Q of size mu.
         ArrayList<T> matingPop = new ArrayList<>(this.population.size());
-        for (int i = 0; i < Properties.POPULATION/2; i++) {
+        // 2023: Replaced "Properties.POPULATION" with "population.size()"
+        for (int i = 0; i < population.size() / 2; i++) {
             T p1 = Randomness.choice(population);
             T p2 = Randomness.choice(population);
 
