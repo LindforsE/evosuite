@@ -40,6 +40,7 @@ public class SIBEA<T extends Chromosome<T>> extends GeneticAlgorithm<T> {
     protected void evolve() {
         // (environmental selection) Iterate the following three steps until the
         // size of the population does no longer exceed mu
+        List<T> = null;
         if (population.size() > Properties.POPULATION) {
             // 1. Rank the population using Pareto Dominance and determine
             // the set of individuals with the worst rank (P').
@@ -48,7 +49,7 @@ public class SIBEA<T extends Chromosome<T>> extends GeneticAlgorithm<T> {
             rankingFunction.computeRankingAssignment(population, new LinkedHashSet<FitnessFunction<T>>(fitnessFunctions));
             int fronts = rankingFunction.getNumberOfSubfronts();
             Properties.POPULATION = tmpPopulation;
-            List<T> worst = rankingFunction.getSubfront(--fronts);
+            worst = rankingFunction.getSubfront(--fronts);
 
             // while difference is larger than size of worst front, remove whole front and get a new one.
             // 2023: Could this become an infinite loop?
@@ -74,7 +75,7 @@ public class SIBEA<T extends Chromosome<T>> extends GeneticAlgorithm<T> {
                 for (int i = 0; i < difference; i++)
                     population.remove(worst.get(i));
             }
-        }
+        
         this.currentIteration++;
     }
 
